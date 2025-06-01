@@ -1,26 +1,36 @@
 import { useState } from "react";
-import axios from "axios";
 import Typography from "@mui/material/Typography";
 import TextField from "@mui/material/TextField";
-import { Box, Button, Card, CardContent, CardMedia, Grid } from "@mui/material";
+import {
+  Alert,
+  Box,
+  Button,
+  Card,
+  CardContent,
+  CardMedia,
+  Grid,
+} from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
+import { getPlayerCards } from "../services/playerService";
 
 const PlayerCards = () => {
   const [query, setQuery] = useState("");
   const [cards, setCards] = useState([]);
+  const [error, setError] = useState("");
 
   const handleSearch = async (e) => {
     e.preventDefault();
+    setError("");
     if (!query) return;
 
     try {
-      const response = await axios.get(
-        `http://localhost:5261/api/Player/${encodeURIComponent(query)}/cards`
-      );
+      const response = await getPlayerCards(query);
       console.log(response.data);
       setCards(response.data);
     } catch (error) {
       console.error("Error al buscar GIFs:", error);
+      setError(error.response.data.detail);
+      console.log(error.response.data.detail);
       setCards([]);
     }
   };
@@ -53,6 +63,11 @@ const PlayerCards = () => {
           Search
         </Button>
       </Box>
+      {error && (
+        <Alert sx={{ mt: 1 }} severity="error">
+          {error}
+        </Alert>
+      )}
 
       <Grid container spacing={2} mt={3}>
         {cards.map((card) => (
