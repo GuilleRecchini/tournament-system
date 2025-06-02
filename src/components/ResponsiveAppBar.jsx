@@ -18,7 +18,7 @@ import { useNavigate } from "react-router-dom";
 import { logout } from "../store/authSlice";
 import LoginIcon from "@mui/icons-material/Login";
 
-const pages = ["Index", "Features", "PlayerCards"];
+const pages = ["Index", "Features", "PlayerCards", "CreateUser"];
 const settings = ["Profile", "Account", "Dashboard", "Logout"];
 
 function ResponsiveAppBar() {

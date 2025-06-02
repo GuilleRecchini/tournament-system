@@ -5,6 +5,7 @@ import PublicRoute from "./PublicRoute";
 import Index from "../views/Index";
 import Login from "../views/Login";
 import PlayerCards from "../views/PlayerCards";
+import CreateUser from "../views/CreateUser";
 
 const AppRoutes = () => {
   return (
@@ -19,6 +20,7 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
+      <Route path="/createuser" element={<CreateUser />} />
       <Route
         path="/login"
         element={
