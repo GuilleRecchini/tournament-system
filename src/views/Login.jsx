@@ -1,67 +1,87 @@
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
-import { login } from "../store/authSlice.js";
+import { setCredentials, setUser } from "../store/authSlice.js";
 import { Paper, Typography, Box, TextField, Button } from "@mui/material";
 import { useState } from "react";
 import { Alert } from "@mui/material";
+import { loginUser } from "../services/authApi.js";
+import { getUser } from "../services/userService.js";
+import { validateEmail, validatePassword } from "../utils/validators.js";
 
 const Login = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const [errors, setErrors] = useState({ username: "", password: "" });
+  const [form, setForm] = useState({ email: "", password: "" });
+  const [errors, setErrors] = useState({ email: "", password: "" });
   const [generalError, setGeneralError] = useState("");
 
-  const handleSubmit = (e) => {
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+    setErrors({ ...errors, [e.target.name]: "" });
+  };
+
+  const validate = () => {
+    const errors = {};
+
+    const emailError = validateEmail(form.email);
+    const passwordError = validatePassword(form.password);
+
+    if (emailError) errors.email = emailError;
+    if (passwordError) errors.password = passwordError;
+
+    return errors;
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const data = new FormData(e.currentTarget);
-    const username = data.get("username");
-    const password = data.get("password");
-
-    const newErrors = { username: "", password: "" };
     setGeneralError("");
-
-    if (!username) newErrors.username = "El nombre de usuario es obligatorio";
-    if (!password) newErrors.password = "La contraseña es obligatoria";
-
-    if (newErrors.username || newErrors.password) {
-      setErrors(newErrors);
+    const validationErrors = validate();
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
       return;
     }
 
-    if (username === "guille" && password === "1234") {
-      dispatch(login("fake-token"));
+    try {
+      const tokenResponse = await loginUser(form.email, form.password);
+      dispatch(setCredentials(tokenResponse.data.accessToken));
+
+      const user = await getUser(tokenResponse.data.userId);
+      dispatch(setUser(user.data));
       navigate("/");
-    } else {
-      setGeneralError("Usuario o contraseña incorrectos");
+    } catch (err) {
+      console.log(err);
+      setGeneralError(err?.response?.data?.detail || "Login error");
     }
   };
 
   return (
     <Paper elevation={6} sx={{ mt: 8, p: 4, mx: "auto", maxWidth: 600 }}>
       <Typography component="h1" variant="h5" align="center">
-        Iniciar Sesión
+        Log In
       </Typography>
       <Box component="form" onSubmit={handleSubmit} sx={{ mt: 2 }}>
         <TextField
           margin="normal"
-          // required
           fullWidth
-          id="username"
-          label="Usuario"
-          name="username"
+          id="email"
+          label="Email"
+          name="email"
+          value={form.email}
+          onChange={handleChange}
           autoFocus
-          error={!!errors.username}
-          helperText={errors.username}
+          error={!!errors.email}
+          helperText={errors.email}
         />
         <TextField
           margin="normal"
-          // required
           fullWidth
           name="password"
-          label="Contraseña"
+          label="Password"
           type="password"
           id="password"
+          value={form.password}
+          onChange={handleChange}
           error={!!errors.password}
           helperText={errors.password}
         />
@@ -76,7 +96,7 @@ const Login = () => {
           variant="contained"
           sx={{ mt: 3, py: 1.5 }}
         >
-          Iniciar Sesión
+          Log In
         </Button>
       </Box>
     </Paper>
