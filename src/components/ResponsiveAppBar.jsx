@@ -19,10 +19,12 @@ import { logout } from "../store/authSlice";
 import LoginIcon from "@mui/icons-material/Login";
 
 const pages = ["Index", "Features", "PlayerCards", "CreateUser"];
+const protectedPages = ["PlayerCards", "CreateUser"];
 const settings = ["Profile", "Account", "Dashboard", "Logout"];
 
 function ResponsiveAppBar() {
   const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
+  const user = useSelector((state) => state.auth.user);
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
@@ -51,7 +53,7 @@ function ResponsiveAppBar() {
 
   const filteredPages = isAuthenticated
     ? pages
-    : pages.filter((page) => page !== "GifSearch" && page !== "PlayerCards");
+    : pages.filter((page) => !protectedPages.includes(page));
 
   return (
     <AppBar position="fixed">
@@ -153,7 +155,10 @@ function ResponsiveAppBar() {
               <>
                 <Tooltip title="Open settings">
                   <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
-                    <Avatar alt="Guillermo" src="/static/images/avatar/2.jpg" />
+                    <Avatar
+                      alt={user?.name ? user.name : ""}
+                      src="/static/images/avatar/2.jpg"
+                    />
                   </IconButton>
                 </Tooltip>
                 <Menu

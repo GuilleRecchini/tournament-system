@@ -12,15 +12,16 @@ const AppRoutes = () => {
     <Routes>
       <Route path="/index" element={<Index />} />
       <Route path="/features" element={<FeaturesSection />} />
-      <Route
-        path="/playercards"
-        element={
-          <ProtectedRoute>
-            <PlayerCards />
-          </ProtectedRoute>
-        }
-      />
-      <Route path="/createuser" element={<CreateUser />} />
+
+      <Route element={<ProtectedRoute />}>
+        <Route path="/playercards" element={<PlayerCards />} />
+      </Route>
+
+      {/* Solo Admin (0) y Organizador (1) */}
+      <Route element={<ProtectedRoute allowedRoles={[0, 1]} />}>
+        <Route path="/createuser" element={<CreateUser />} />
+      </Route>
+
       <Route
         path="/login"
         element={
