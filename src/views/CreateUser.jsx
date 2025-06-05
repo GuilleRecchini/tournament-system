@@ -1,4 +1,5 @@
 import {
+  Alert,
   Box,
   Button,
   FormControl,
@@ -8,20 +9,49 @@ import {
   MenuItem,
   Paper,
   Select,
+  Snackbar,
   TextField,
   Typography,
 } from "@mui/material";
 import { useState } from "react";
+import { registerUser } from "../services/userService";
+import { useSelector } from "react-redux";
+import { validateEmail, validatePassword } from "../utils/validators";
 
 const roles = [
-  { value: 0, label: "Admin" },
-  { value: 1, label: "Organizador" },
-  { value: 2, label: "Juez" },
-  { value: 3, label: "Jugador" },
+  { value: 0, label: "Administrator" },
+  { value: 1, label: "Organizer" },
+  { value: 2, label: "Judge" },
+  { value: 3, label: "Player" },
 ];
 
+const getAvailableRoles = (userRole) => {
+  switch (userRole) {
+    case 0: // Admin
+      return roles;
+    case 1: // Organizador
+      return roles.filter((r) => r.value >= 2); // Puede crear Juez y Jugador
+    case 2: // Juez
+    case 3: // Jugador
+    default:
+      return []; // No puede crear usuarios
+  }
+};
+
 const CreateUser = () => {
-  const [form, setForm] = useState({
+  const user = useSelector((state) => state.auth.user);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "success",
+  });
+
+  const showSnackbar = (message, severity = "success") => {
+    setSnackbar({ open: true, message, severity });
+  };
+
+  const initialFormState = {
     name: "",
     alias: "",
     email: "",
@@ -29,8 +59,9 @@ const CreateUser = () => {
     confirmPassword: "",
     countryCode: "",
     role: "",
-    createdBy: "",
-  });
+  };
+
+  const [form, setForm] = useState(initialFormState);
 
   const [errors, setErrors] = useState({
     name: "",
@@ -40,68 +71,75 @@ const CreateUser = () => {
     confirmPassword: "",
     countryCode: "",
     role: "",
-    createdBy: "",
   });
 
   const handleChange = (e) => {
-    setForm({
-      ...form,
-      [e.target.name]: e.target.value,
-    });
-
-    setErrors({
-      ...errors,
-      [e.target.name]: "",
-    });
+    setForm({ ...form, [e.target.name]: e.target.value });
+    setErrors({ ...errors, [e.target.name]: "" });
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-
+  const validate = () => {
     const errors = {};
 
-    if (!form.name) errors.name = "El nombre es obligatorio";
+    const emailError = validateEmail(form.email);
+    const passwordError = validatePassword(form.password);
 
-    if (!form.alias) errors.alias = "El alias es obligatorio";
-
-    if (!form.email) {
-      errors.email = "El correo electrónico es obligatorio";
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
-      errors.email = "El correo electrónico no es válido";
-    }
-
-    if (!form.password) {
-      errors.password = "La contraseña es obligatoria";
-    } else if (form.password.length < 8) {
-      errors.password = "La contraseña debe tener al menos 8 caracteres";
+    if (emailError) errors.email = emailError;
+    if (passwordError) {
+      errors.password = passwordError;
     } else if (form.password !== form.confirmPassword) {
-      errors.password = "Las contraseñas no coinciden";
-      errors.confirmPassword = "Las contraseñas no coinciden";
+      errors.password = errors.confirmPassword = "Passwords do not match";
     }
+    if (!form.name) errors.name = "Name is required";
+    if (!form.alias) errors.alias = "Alias is required";
+    if (!form.countryCode) errors.countryCode = "Country is required";
+    if (form.role == null || form.role === "") errors.role = "Role is required";
 
-    if (!form.countryCode) errors.countryCode = "El país es obligatorio";
+    console.log("rol", form);
 
-    if (!form.role) errors.role = "El rol es obligatorio";
+    return errors;
+  };
 
-    setErrors(errors);
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-    if (Object.values(errors).some((error) => !!error)) {
+    const validationErrors = validate();
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
       return;
     }
 
-    console.log("Usuario creado:", form);
+    console.log("Formulario válido:", form);
+    setIsSubmitting(true);
+    try {
+      const response = await registerUser(form);
+      console.log(response);
+      showSnackbar(response.data.message, "success");
+      setForm(initialFormState);
+      setErrors({});
+    } catch (error) {
+      console.log(error);
+      const message =
+        error.response?.data?.detail || "An unexpected error occurred";
+      showSnackbar(message, "error");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
   return (
     <Box p={4}>
-      <Paper elevation={3} sx={{ maxWidth: 600, mx: "auto", p: 4 }}>
+      <Paper
+        elevation={3}
+        sx={{ maxWidth: 600, mx: "auto", p: 4, borderRadius: 3 }}
+      >
         <Typography variant="h5" gutterBottom>
-          Crear Usuario
+          Create User
         </Typography>
         <form onSubmit={handleSubmit}>
           <Grid container spacing={2}>
             <Grid item size={{ lg: 6, xs: 12 }}>
               <TextField
-                label="Nombre"
+                label="Name"
                 name="name"
                 fullWidth
                 value={form.name}
@@ -135,7 +173,7 @@ const CreateUser = () => {
             </Grid>
             <Grid item size={{ lg: 6, xs: 12 }}>
               <TextField
-                label="Contraseña"
+                label="Password"
                 name="password"
                 type="password"
                 fullWidth
@@ -147,7 +185,7 @@ const CreateUser = () => {
             </Grid>
             <Grid item size={{ lg: 6, xs: 12 }}>
               <TextField
-                label="Confirmar Contraseña"
+                label="Confirm Password"
                 name="confirmPassword"
                 type="password"
                 fullWidth
@@ -159,18 +197,20 @@ const CreateUser = () => {
             </Grid>
             <Grid item size={{ lg: 6, xs: 12 }}>
               <FormControl fullWidth error={!!errors.countryCode}>
-                <InputLabel>País</InputLabel>
+                <InputLabel id="country-label">Country</InputLabel>
                 <Select
+                  labelId="country-label"
+                  id="countryCode"
                   name="countryCode"
+                  label="Country"
                   value={form.countryCode}
                   onChange={handleChange}
-                  label="País"
                 >
-                  <MenuItem value="AR">🇦🇷 Argentina</MenuItem>
-                  <MenuItem value="MX">🇲🇽 México</MenuItem>
-                  <MenuItem value="CL">🇨🇱 Chile</MenuItem>
-                  <MenuItem value="ES">🇪🇸 España</MenuItem>
-                  <MenuItem value="US">🇺🇸 USA</MenuItem>
+                  <MenuItem value="AR">Argentina</MenuItem>
+                  <MenuItem value="MX">México</MenuItem>
+                  <MenuItem value="CL">Chile</MenuItem>
+                  <MenuItem value="ES">España</MenuItem>
+                  <MenuItem value="US">USA</MenuItem>
                 </Select>
                 {errors.countryCode && (
                   <FormHelperText>{errors.countryCode}</FormHelperText>
@@ -179,14 +219,16 @@ const CreateUser = () => {
             </Grid>
             <Grid item size={{ lg: 6, xs: 12 }}>
               <FormControl fullWidth error={!!errors.role}>
-                <InputLabel>Rol</InputLabel>
+                <InputLabel id="role-label">Role</InputLabel>
                 <Select
+                  labelId="role-label"
+                  id="role"
                   name="role"
+                  label="Role"
                   value={form.role}
                   onChange={handleChange}
-                  label="Rol"
                 >
-                  {roles.map((r) => (
+                  {getAvailableRoles(user?.role).map((r) => (
                     <MenuItem key={r.value} value={r.value}>
                       {r.label}
                     </MenuItem>
@@ -197,14 +239,34 @@ const CreateUser = () => {
             </Grid>
             <Grid item size={{ lg: 12, xs: 12 }}>
               <Box display="flex" justifyContent="center" mt={2}>
-                <Button type="submit" variant="contained" color="primary">
-                  Guardar
+                <Button
+                  type="submit"
+                  variant="contained"
+                  color="primary"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? "Submitting..." : "Submit"}
                 </Button>
               </Box>
             </Grid>
           </Grid>
         </form>
       </Paper>
+
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={4000}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        <Alert
+          onClose={() => setSnackbar({ ...snackbar, open: false })}
+          severity={snackbar.severity}
+          sx={{ width: "100%" }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };
