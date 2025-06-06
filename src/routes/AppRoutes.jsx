@@ -6,6 +6,9 @@ import Index from "../views/Index";
 import Login from "../views/Login";
 import PlayerCards from "../views/PlayerCards";
 import CreateUser from "../views/CreateUser";
+import UserList from "../views/UserList";
+import { UserRoles } from "../constants/roles";
+import Logout from "../views/Logout";
 
 const AppRoutes = () => {
   return (
@@ -13,23 +16,32 @@ const AppRoutes = () => {
       <Route path="/index" element={<Index />} />
       <Route path="/features" element={<FeaturesSection />} />
 
+      {/* Usuario autenticado */}
       <Route element={<ProtectedRoute />}>
         <Route path="/playercards" element={<PlayerCards />} />
-      </Route>
-
-      {/* Solo Admin (0) y Organizador (1) */}
-      <Route element={<ProtectedRoute allowedRoles={[0, 1]} />}>
-        <Route path="/createuser" element={<CreateUser />} />
+        <Route path="/logout" element={<Logout />} />
       </Route>
 
       <Route
-        path="/login"
+        element={<ProtectedRoute allowedRoles={UserRoles.ADMINISTRATOR} />}
+      >
+        <Route path="/users" element={<UserList />} />
+      </Route>
+
+      <Route
         element={
-          <PublicRoute>
-            <Login />
-          </PublicRoute>
+          <ProtectedRoute
+            allowedRoles={[UserRoles.ADMINISTRATOR, UserRoles.ORGANIZER]}
+          />
         }
-      />
+      >
+        <Route path="/users/create" element={<CreateUser />} />
+      </Route>
+
+      <Route element={<PublicRoute />}>
+        <Route path="/login" element={<Login />} />
+      </Route>
+
       <Route path="/" element={<Index />} />
     </Routes>
   );

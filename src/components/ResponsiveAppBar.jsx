@@ -14,19 +14,14 @@ import MenuItem from "@mui/material/MenuItem";
 import AdbIcon from "@mui/icons-material/Adb";
 import { Link } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
-import { useNavigate } from "react-router-dom";
 import { logout } from "../store/authSlice";
 import LoginIcon from "@mui/icons-material/Login";
-
-const pages = ["Index", "Features", "PlayerCards", "CreateUser"];
-const protectedPages = ["PlayerCards", "CreateUser"];
-const settings = ["Profile", "Account", "Dashboard", "Logout"];
+import { menuRoutes, settingsRoutes } from "../constants/appRoutes";
 
 function ResponsiveAppBar() {
   const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
   const user = useSelector((state) => state.auth.user);
   const dispatch = useDispatch();
-  const navigate = useNavigate();
 
   const [anchorElNav, setAnchorElNav] = React.useState(null);
   const [anchorElUser, setAnchorElUser] = React.useState(null);
@@ -46,14 +41,11 @@ function ResponsiveAppBar() {
     setAnchorElUser(null);
   };
 
-  const handleLogout = () => {
-    dispatch(logout());
-    navigate("/index");
-  };
-
-  const filteredPages = isAuthenticated
-    ? pages
-    : pages.filter((page) => !protectedPages.includes(page));
+  const filteredMenu = !isAuthenticated
+    ? menuRoutes.filter((route) => !route.roles)
+    : menuRoutes.filter(
+        (route) => route.roles?.includes(user?.role) || !route.roles
+      );
 
   return (
     <AppBar position="fixed">
@@ -104,14 +96,16 @@ function ResponsiveAppBar() {
               onClose={handleCloseNavMenu}
               sx={{ display: { xs: "block", md: "none" } }}
             >
-              {filteredPages.map((page) => (
+              {filteredMenu.map((page) => (
                 <MenuItem
-                  key={page}
+                  key={page.path}
                   component={Link}
                   onClick={handleCloseNavMenu}
-                  to={`/${page.toLowerCase()}`}
+                  to={page.path}
                 >
-                  <Typography sx={{ textAlign: "center" }}>{page}</Typography>
+                  <Typography sx={{ textAlign: "center" }}>
+                    {page.label}
+                  </Typography>
                 </MenuItem>
               ))}
             </Menu>
@@ -137,15 +131,15 @@ function ResponsiveAppBar() {
             LOGO
           </Typography>
           <Box sx={{ flexGrow: 1, display: { xs: "none", md: "flex" } }}>
-            {filteredPages.map((page) => (
+            {filteredMenu.map((page) => (
               <Button
-                key={page}
+                key={page.path}
                 component={Link}
-                to={`/${page.toLowerCase()}`}
+                to={page.path}
                 onClick={handleCloseNavMenu}
                 sx={{ my: 2, color: "white", display: "block" }}
               >
-                {page}
+                {page.label}
               </Button>
             ))}
           </Box>
@@ -177,14 +171,13 @@ function ResponsiveAppBar() {
                   open={Boolean(anchorElUser)}
                   onClose={handleCloseUserMenu}
                 >
-                  {settings.map((setting) => (
+                  {settingsRoutes.map((setting) => (
                     <MenuItem
-                      key={setting}
+                      key={setting.path}
+                      component={Link}
+                      to={setting.path}
                       onClick={() => {
                         handleCloseUserMenu();
-                        if (setting === "Logout") {
-                          handleLogout();
-                        }
                       }}
                     >
                       <Typography
@@ -192,7 +185,7 @@ function ResponsiveAppBar() {
                           textAlign: "center",
                         }}
                       >
-                        {setting}
+                        {setting.label}
                       </Typography>
                     </MenuItem>
                   ))}
