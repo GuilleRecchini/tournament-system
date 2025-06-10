@@ -22,8 +22,13 @@ export const menuRoutes = [
     roles: [UserRoles.ADMINISTRATOR, UserRoles.ORGANIZER],
   },
   {
-    path: "/users",
-    label: "Users",
+    path: "/admin/users",
+    label: "Manage Users",
+    roles: [UserRoles.ADMINISTRATOR],
+  },
+  {
+    path: "/cards/assign",
+    label: "Card Assignment",
     roles: [UserRoles.ADMINISTRATOR],
   },
 ];

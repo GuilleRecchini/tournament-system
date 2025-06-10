@@ -6,9 +6,10 @@ import Index from "../views/Index";
 import Login from "../views/Login";
 import PlayerCards from "../views/PlayerCards";
 import CreateUser from "../views/CreateUser";
-import UserList from "../views/UserList";
+import UserManager from "../views/UserManager";
 import { UserRoles } from "../constants/roles";
 import Logout from "../views/Logout";
+import CardAssignment from "../views/CardAssignment";
 
 const AppRoutes = () => {
   return (
@@ -25,7 +26,8 @@ const AppRoutes = () => {
       <Route
         element={<ProtectedRoute allowedRoles={UserRoles.ADMINISTRATOR} />}
       >
-        <Route path="/users" element={<UserList />} />
+        <Route path="/admin/users" element={<UserManager />} />
+        <Route path="/cards/assign" element={<CardAssignment />} />
       </Route>
 
       <Route
