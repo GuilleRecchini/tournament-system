@@ -7,8 +7,8 @@ export const menuRoutes = [
     roles: null,
   },
   {
-    path: "/playercards",
-    label: "Player Cards",
+    path: "/dashboard",
+    label: "Dashboard",
     roles: Object.values(UserRoles),
   },
   {
@@ -25,6 +25,11 @@ export const menuRoutes = [
     path: "/cards/assign",
     label: "Card Assignment",
     roles: [UserRoles.ADMINISTRATOR],
+  },
+  {
+    path: "/playercards",
+    label: "Player Cards",
+    roles: Object.values(UserRoles),
   },
 ];
 

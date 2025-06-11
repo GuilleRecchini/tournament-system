@@ -1,5 +1,4 @@
 import { Route, Routes } from "react-router";
-import FeaturesSection from "../views/FeaturesSection";
 import ProtectedRoute from "./ProtectedRoute";
 import PublicRoute from "./PublicRoute";
 import Index from "../views/Index";
@@ -10,6 +9,7 @@ import UserManager from "../views/UserManager";
 import { UserRoles } from "../constants/roles";
 import Logout from "../views/Logout";
 import CardAssignment from "../views/CardAssignment";
+import MainDashboard from "../views/MainDashboard";
 
 const AppRoutes = () => {
   return (
@@ -20,6 +20,7 @@ const AppRoutes = () => {
       <Route element={<ProtectedRoute />}>
         <Route path="/playercards" element={<PlayerCards />} />
         <Route path="/logout" element={<Logout />} />
+        <Route path="/dashboard" element={<MainDashboard />} />
       </Route>
 
       <Route

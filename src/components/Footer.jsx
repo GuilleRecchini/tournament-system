@@ -18,7 +18,7 @@ export default function Footer() {
     >
       <Container>
         <Typography variant="body1">
-          &copy; {new Date().getFullYear()} Lorem Ipsum
+          &copy; {new Date().getFullYear()} Deck & Duel
         </Typography>
       </Container>
     </Box>

@@ -11,17 +11,16 @@ import Avatar from "@mui/material/Avatar";
 import Button from "@mui/material/Button";
 import Tooltip from "@mui/material/Tooltip";
 import MenuItem from "@mui/material/MenuItem";
-import AdbIcon from "@mui/icons-material/Adb";
 import { Link } from "react-router-dom";
-import { useSelector, useDispatch } from "react-redux";
-import { logout } from "../store/authSlice";
+import { useSelector } from "react-redux";
 import LoginIcon from "@mui/icons-material/Login";
 import { menuRoutes, settingsRoutes } from "../constants/appRoutes";
+import Logo from "./Logo";
+import "@fontsource/cinzel";
 
 function ResponsiveAppBar() {
   const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
   const user = useSelector((state) => state.auth.user);
-  const dispatch = useDispatch();
 
   const [anchorElNav, setAnchorElNav] = React.useState(null);
   const [anchorElUser, setAnchorElUser] = React.useState(null);
@@ -51,7 +50,9 @@ function ResponsiveAppBar() {
     <AppBar position="fixed">
       <Container maxWidth="xl">
         <Toolbar disableGutters>
-          <AdbIcon sx={{ display: { xs: "none", md: "flex" }, mr: 1 }} />
+          <Box sx={{ display: { xs: "none", md: "flex" } }}>
+            <Logo width={40} height={40} />
+          </Box>
           <Typography
             variant="h6"
             noWrap
@@ -60,15 +61,17 @@ function ResponsiveAppBar() {
             sx={{
               mr: 2,
               display: { xs: "none", md: "flex" },
-              fontFamily: "monospace",
-              fontWeight: 700,
-              letterSpacing: ".3rem",
+              fontFamily: "'Cinzel', serif",
+              fontWeight: 800,
+              letterSpacing: ".2rem",
               color: "inherit",
               textDecoration: "none",
+              textTransform: "uppercase",
             }}
           >
-            LOGO
+            Deck & Duel
           </Typography>
+
           <Box sx={{ flexGrow: 1, display: { xs: "flex", md: "none" } }}>
             <IconButton
               size="large"
@@ -103,15 +106,18 @@ function ResponsiveAppBar() {
                   onClick={handleCloseNavMenu}
                   to={page.path}
                 >
-                  <Typography sx={{ textAlign: "center" }}>
+                  <Typography
+                    sx={{ textAlign: "center", fontFamily: "'Cinzel', serif" }}
+                  >
                     {page.label}
                   </Typography>
                 </MenuItem>
               ))}
             </Menu>
           </Box>
-
-          <AdbIcon sx={{ display: { xs: "flex", md: "none" }, mr: 1 }} />
+          <Box sx={{ display: { xs: "flex", md: "none" }, mr: 1 }}>
+            <Logo width={40} height={40} />
+          </Box>
           <Typography
             variant="h5"
             noWrap
@@ -121,14 +127,15 @@ function ResponsiveAppBar() {
               mr: 2,
               display: { xs: "flex", md: "none" },
               flexGrow: 1,
-              fontFamily: "monospace",
+              fontFamily: "'Cinzel', serif",
               fontWeight: 700,
-              letterSpacing: ".3rem",
+              letterSpacing: ".2rem",
               color: "inherit",
               textDecoration: "none",
+              textTransform: "uppercase",
             }}
           >
-            LOGO
+            Deck & Duel
           </Typography>
           <Box sx={{ flexGrow: 1, display: { xs: "none", md: "flex" } }}>
             {filteredMenu.map((page) => (
@@ -137,13 +144,17 @@ function ResponsiveAppBar() {
                 component={Link}
                 to={page.path}
                 onClick={handleCloseNavMenu}
-                sx={{ my: 2, color: "white", display: "block" }}
+                sx={{
+                  my: 2,
+                  color: "white",
+                  display: "block",
+                  fontFamily: "'Cinzel', serif",
+                }}
               >
                 {page.label}
               </Button>
             ))}
           </Box>
-
           <Box sx={{ flexGrow: 0 }}>
             {isAuthenticated ? (
               <>

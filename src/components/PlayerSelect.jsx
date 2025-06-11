@@ -28,20 +28,6 @@ const PlayerSelect = ({ selectedPlayerId, onChange }) => {
     players.find((p) => p.userId === selectedPlayerId) || null;
 
   return (
-    // <FormControl fullWidth sx={{ my: 2 }}>
-    //   <InputLabel>Player</InputLabel>
-    //   <Select
-    //     value={selectedPlayerId}
-    //     label="Palyer"
-    //     onChange={(e) => onChange(e.target.value)}
-    //   >
-    //     {players.map((player) => (
-    //       <MenuItem key={player.userId} value={player.userId}>
-    //         {player.alias}
-    //       </MenuItem>
-    //     ))}
-    //   </Select>
-    // </FormControl>
     <Autocomplete
       fullWidth
       options={players}
