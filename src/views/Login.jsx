@@ -7,6 +7,7 @@ import { Alert } from "@mui/material";
 import { loginUser } from "../services/authApi.js";
 import { getUser } from "../services/userService.js";
 import { validateEmail, validatePassword } from "../utils/validators.js";
+import ShowHidePasswordIcon from "../components/ShowHidePasswordIcon.jsx";
 
 const Login = () => {
   const dispatch = useDispatch();
@@ -15,6 +16,9 @@ const Login = () => {
   const [form, setForm] = useState({ email: "", password: "" });
   const [errors, setErrors] = useState({ email: "", password: "" });
   const [generalError, setGeneralError] = useState("");
+
+  const [showPassword, setShowPassword] = useState(false);
+  const toggleShowPassword = () => setShowPassword((prev) => !prev);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -78,12 +82,22 @@ const Login = () => {
           fullWidth
           name="password"
           label="Password"
-          type="password"
+          type={showPassword ? "text" : "password"}
           id="password"
           value={form.password}
           onChange={handleChange}
           error={!!errors.password}
           helperText={errors.password}
+          slotProps={{
+            input: {
+              endAdornment: (
+                <ShowHidePasswordIcon
+                  visible={showPassword}
+                  onToggle={toggleShowPassword}
+                />
+              ),
+            },
+          }}
         />
         {generalError && (
           <Alert severity="error" sx={{ mt: 2 }}>

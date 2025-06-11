@@ -159,8 +159,8 @@ export default function UserManager() {
     : allColumns;
 
   return (
-    <Box p={2}>
-      <Typography variant="h6" mb={2}>
+    <Box mt={3}>
+      <Typography variant="h5" mb={1}>
         User List
       </Typography>
 

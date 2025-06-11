@@ -1,5 +1,4 @@
 import {
-  Alert,
   Box,
   Button,
   FormControl,
@@ -9,7 +8,6 @@ import {
   MenuItem,
   Paper,
   Select,
-  Snackbar,
   TextField,
   Typography,
 } from "@mui/material";
@@ -17,24 +15,18 @@ import { useState } from "react";
 import { registerUser } from "../services/userService";
 import { useSelector } from "react-redux";
 import { validateEmail, validatePassword } from "../utils/validators";
-
-const roles = [
-  { value: 0, label: "Administrator" },
-  { value: 1, label: "Organizer" },
-  { value: 2, label: "Judge" },
-  { value: 3, label: "Player" },
-];
+import { UserRoles, roleOptions } from "../constants/roles";
+import CustomSnackbar from "../components/CustomSnackbar";
+import ShowHidePasswordIcon from "../components/ShowHidePasswordIcon";
 
 const getAvailableRoles = (userRole) => {
   switch (userRole) {
-    case 0: // Admin
-      return roles;
-    case 1: // Organizador
-      return roles.filter((r) => r.value >= 2); // Puede crear Juez y Jugador
-    case 2: // Juez
-    case 3: // Jugador
+    case UserRoles.ADMINISTRATOR:
+      return roleOptions;
+    case UserRoles.ORGANIZER:
+      return [UserRoles.JUDGE];
     default:
-      return []; // No puede crear usuarios
+      return [];
   }
 };
 
@@ -46,6 +38,12 @@ const CreateUser = () => {
     message: "",
     severity: "success",
   });
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  const toggleShowPassword = () => setShowPassword((prev) => !prev);
+  const toggleShowConfirmPassword = () =>
+    setShowConfirmPassword((prev) => !prev);
 
   const showSnackbar = (message, severity = "success") => {
     setSnackbar({ open: true, message, severity });
@@ -95,8 +93,6 @@ const CreateUser = () => {
     if (!form.countryCode) errors.countryCode = "Country is required";
     if (form.role == null || form.role === "") errors.role = "Role is required";
 
-    console.log("rol", form);
-
     return errors;
   };
 
@@ -109,7 +105,6 @@ const CreateUser = () => {
       return;
     }
 
-    console.log("Formulario válido:", form);
     setIsSubmitting(true);
     try {
       const response = await registerUser(form);
@@ -137,7 +132,7 @@ const CreateUser = () => {
         </Typography>
         <form onSubmit={handleSubmit}>
           <Grid container spacing={2}>
-            <Grid item size={{ lg: 6, xs: 12 }}>
+            <Grid size={{ xs: 12, lg: 6 }}>
               <TextField
                 label="Name"
                 name="name"
@@ -148,7 +143,7 @@ const CreateUser = () => {
                 onChange={handleChange}
               />
             </Grid>
-            <Grid item size={{ lg: 6, xs: 12 }}>
+            <Grid size={{ xs: 12, lg: 6 }}>
               <TextField
                 label="Alias"
                 name="alias"
@@ -159,43 +154,66 @@ const CreateUser = () => {
                 onChange={handleChange}
               />
             </Grid>
-            <Grid item size={{ lg: 12, xs: 12 }}>
+            <Grid size={{ lg: 12, xs: 12 }}>
               <TextField
                 label="Email"
                 name="email"
                 fullWidth
                 // type="email"
+                autoComplete="email"
                 value={form.email}
                 error={!!errors.email}
                 helperText={errors.email}
                 onChange={handleChange}
               />
             </Grid>
-            <Grid item size={{ lg: 6, xs: 12 }}>
+            <Grid size={{ xs: 12, lg: 6 }}>
               <TextField
                 label="Password"
                 name="password"
-                type="password"
+                type={showPassword ? "text" : "password"}
+                autoComplete="new-password"
                 fullWidth
                 value={form.password}
                 error={!!errors.password}
                 helperText={errors.password}
                 onChange={handleChange}
+                slotProps={{
+                  input: {
+                    endAdornment: (
+                      <ShowHidePasswordIcon
+                        visible={showPassword}
+                        onToggle={toggleShowPassword}
+                      />
+                    ),
+                  },
+                }}
               />
             </Grid>
-            <Grid item size={{ lg: 6, xs: 12 }}>
+            <Grid size={{ xs: 12, lg: 6 }}>
               <TextField
                 label="Confirm Password"
                 name="confirmPassword"
-                type="password"
+                type={showConfirmPassword ? "text" : "password"}
+                autoComplete="new-password"
                 fullWidth
                 value={form.confirmPassword}
                 error={!!errors.confirmPassword}
                 helperText={errors.confirmPassword}
                 onChange={handleChange}
+                slotProps={{
+                  input: {
+                    endAdornment: (
+                      <ShowHidePasswordIcon
+                        visible={showConfirmPassword}
+                        onToggle={toggleShowConfirmPassword}
+                      />
+                    ),
+                  },
+                }}
               />
             </Grid>
-            <Grid item size={{ lg: 6, xs: 12 }}>
+            <Grid size={{ xs: 12, lg: 6 }}>
               <FormControl fullWidth error={!!errors.countryCode}>
                 <InputLabel id="country-label">Country</InputLabel>
                 <Select
@@ -217,7 +235,7 @@ const CreateUser = () => {
                 )}
               </FormControl>
             </Grid>
-            <Grid item size={{ lg: 6, xs: 12 }}>
+            <Grid size={{ xs: 12, lg: 6 }}>
               <FormControl fullWidth error={!!errors.role}>
                 <InputLabel id="role-label">Role</InputLabel>
                 <Select
@@ -237,7 +255,7 @@ const CreateUser = () => {
                 {errors.role && <FormHelperText>{errors.role}</FormHelperText>}
               </FormControl>
             </Grid>
-            <Grid item size={{ lg: 12, xs: 12 }}>
+            <Grid size={{ lg: 12, xs: 12 }}>
               <Box display="flex" justifyContent="center" mt={2}>
                 <Button
                   type="submit"
@@ -253,20 +271,12 @@ const CreateUser = () => {
         </form>
       </Paper>
 
-      <Snackbar
+      <CustomSnackbar
         open={snackbar.open}
-        autoHideDuration={4000}
+        message={snackbar.message}
+        severity={snackbar.severity}
         onClose={() => setSnackbar({ ...snackbar, open: false })}
-        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
-      >
-        <Alert
-          onClose={() => setSnackbar({ ...snackbar, open: false })}
-          severity={snackbar.severity}
-          sx={{ width: "100%" }}
-        >
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
+      />
     </Box>
   );
 };

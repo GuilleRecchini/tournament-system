@@ -15,7 +15,6 @@ const AppRoutes = () => {
   return (
     <Routes>
       <Route path="/index" element={<Index />} />
-      <Route path="/features" element={<FeaturesSection />} />
 
       {/* Usuario autenticado */}
       <Route element={<ProtectedRoute />}>

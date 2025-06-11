@@ -7,11 +7,6 @@ export const menuRoutes = [
     roles: null,
   },
   {
-    path: "/features",
-    label: "Features",
-    roles: null,
-  },
-  {
     path: "/playercards",
     label: "Player Cards",
     roles: Object.values(UserRoles),
