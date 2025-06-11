@@ -1,73 +1,60 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Typography from "@mui/material/Typography";
-import TextField from "@mui/material/TextField";
-import {
-  Alert,
-  Box,
-  Button,
-  Card,
-  CardContent,
-  CardMedia,
-  Grid,
-} from "@mui/material";
-import SearchIcon from "@mui/icons-material/Search";
+import { Box, Grid } from "@mui/material";
 import { getPlayerCards } from "../services/playerService";
+import PlayerSelect from "../components/PlayerSelect";
+import CardItem from "../components/CardItem";
+import CustomSnackbar from "../components/CustomSnackbar";
 
 const PlayerCards = () => {
-  const [query, setQuery] = useState("");
   const [cards, setCards] = useState([]);
-  const [error, setError] = useState("");
+  const [selectedPlayerId, setSelectedPlayerId] = useState("");
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "success",
+  });
 
-  const handleSearch = async (e) => {
-    e.preventDefault();
-    setError("");
-    if (!query) return;
+  useEffect(() => {
+    const fetchPlayerCards = async () => {
+      if (!selectedPlayerId) {
+        setCards([]);
+        return;
+      }
+      try {
+        const res = await getPlayerCards(selectedPlayerId);
+        setCards(res.data);
+        if (res.data.length === 0) {
+          showSnackbar("No cards found for this player", "info");
+        }
+        console.log(res.data);
+      } catch (error) {
+        showSnackbar(
+          "Error loading player cards. Please try again later.",
+          "error"
+        );
+        console.error("Error loading player cards", error);
+        setCards([]);
+      }
+    };
+    fetchPlayerCards();
+  }, [selectedPlayerId]);
 
-    try {
-      const response = await getPlayerCards(query);
-      console.log(response.data);
-      setCards(response.data);
-    } catch (error) {
-      console.error("Error al buscar GIFs:", error);
-      setError(error.response.data.detail);
-      console.log(error.response.data.detail);
-      setCards([]);
-    }
+  const showSnackbar = (message, severity) => {
+    setSnackbar({ open: true, message, severity });
   };
 
   return (
-    <>
-      <Typography variant="h2" align="center" mt={3}>
-        Player Cards
-      </Typography>
-      <Box
-        component={"form"}
-        onSubmit={handleSearch}
-        mt={3}
-        sx={{ display: "flex", justifyContent: "center" }}
-      >
-        <TextField
-          id="search-player-cards"
-          label="Player ID"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          variant="outlined"
-          sx={{ flexGrow: 1 }}
-        />
-        <Button
-          variant="outlined"
-          type="submit"
-          sx={{ ml: 2 }}
-          endIcon={<SearchIcon />}
-        >
-          Search
-        </Button>
-      </Box>
-      {error && (
-        <Alert sx={{ mt: 1 }} severity="error">
-          {error}
-        </Alert>
-      )}
+    <Box mt={3}>
+      <Typography variant="h5">Player Cards</Typography>
+      <Grid container spacing={2} mt={2}>
+        <Grid size={{ xs: 12, lg: 6 }}>
+          <PlayerSelect
+            selectedPlayerId={selectedPlayerId}
+            onChange={setSelectedPlayerId}
+          />
+        </Grid>
+      </Grid>
 
       <Grid container spacing={2} mt={3}>
         {cards.map((card) => (
@@ -77,47 +64,18 @@ const PlayerCards = () => {
             display={"flex"}
             justifyContent={"center"}
           >
-            <Card height="100%">
-              <CardMedia
-                component={"img"}
-                image={card.illustration}
-                title={card.name}
-                sx={{
-                  height: 400,
-                  objectFit: "contain",
-                }}
-              />
-              <CardContent>
-                <Typography
-                  gutterBottom
-                  variant="h6"
-                  component="div"
-                  sx={{
-                    overflowWrap: "break-word",
-                    wordBreak: "break-word",
-                    maxWidth: 200,
-                  }}
-                >
-                  {card.name}
-                </Typography>
-                <Typography variant="body2" sx={{ color: "text.secondary" }}>
-                  Series:
-                </Typography>
-                {card.series.map((s) => (
-                  <Typography
-                    key={s.id}
-                    variant="body2"
-                    sx={{ color: "text.secondary", pl: 2 }}
-                  >
-                    • {s.name}
-                  </Typography>
-                ))}
-              </CardContent>
-            </Card>
+            <CardItem card={card} />
           </Grid>
         ))}
       </Grid>
-    </>
+
+      <CustomSnackbar
+        open={snackbar.open}
+        message={snackbar.message}
+        severity={snackbar.severity}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+      />
+    </Box>
   );
 };
 
